@@ -28,12 +28,19 @@ global FREE TREE SHOOTER PICK_UP DROP_OFF BASE
 global NORTH SOUTH EAST WEST HOVER
 global K TERMINAL_STATE_INDEX
 
-P = zeros(470,470,5);
+%Initializing the transition probability matrix
+P = zeros(size(map,1)*size(map,2),size(map,1)*size(map,2),5);
+
+%Create shooter matrix
+[row_shooter, col_shooter] = find(map(:,:) == SHOOTER);
+shooter = [row_shooter'; col_shooter'];
+
+
 
 for m = 1 : size(map, 1)
     for n = 1 : size(map, 2)
-        count_neighbours = 0;
-        neighbour_type = zeros(1,4);
+        count_neighbours = 1;
+        neighbour_type = zeros(1,5);
         if map(m, n) ~= TREE %neighbour_type has the following structure: [north south est west] where 0 represents a tree in that direction
             
             if (m > 1 && map(m-1,n) ~= TREE) %north
@@ -55,59 +62,199 @@ for m = 1 : size(map, 1)
              
             transition_probability_value = 1/count_neighbours;
             
-            for l = 1:4
                 if neighbour_type(1) == 1 %north
                     P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0),...
-                        find(stateSpace(:,1) == m-1 & stateSpace(:,2) == n & stateSpace(:,3) == 0),l) = transition_probability_value;
+                        find(stateSpace(:,1) == m-1 & stateSpace(:,2) == n & stateSpace(:,3) == 0),:) = transition_probability_value * (1 - P_WIND);
                     P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,...
-                        find(stateSpace(:,1) == m-1 & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,l) = transition_probability_value;
+                        find(stateSpace(:,1) == m-1 & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,:) = transition_probability_value * (1 - P_WIND);
+                    
+                    %transition probabilities taking into account the wind
+                    if m-2 > 0 
+                    P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0),...
+                        find(stateSpace(:,1) == m-2 & stateSpace(:,2) == n & stateSpace(:,3) == 0),:) = transition_probability_value * 1/4 * P_WIND;
+                    P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,...
+                        find(stateSpace(:,1) == m-2 & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,:) = transition_probability_value * 1/4 * P_WIND;
+                    end
+                    
+                    if n-1 > 0 
+                        P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,...
+                        find(stateSpace(:,1) == m-1 & stateSpace(:,2) == n-1 & stateSpace(:,3) == 0) + 1,:) = transition_probability_value * 1/4 * P_WIND;
+                        P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,...
+                        find(stateSpace(:,1) == m-1 & stateSpace(:,2) == n-1 & stateSpace(:,3) == 0) + 1,:) = transition_probability_value * 1/4 * P_WIND;
+                    end
+                    
+                    if n+1 < size(map,2)
+                        P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0),...
+                        find(stateSpace(:,1) == m-1 & stateSpace(:,2) == n+1 & stateSpace(:,3) == 0),:) = transition_probability_value * 1/4 * P_WIND;
+                        P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,...
+                        find(stateSpace(:,1) == m-1 & stateSpace(:,2) == n+1 & stateSpace(:,3) == 0) + 1,:) = transition_probability_value * 1/4 * P_WIND;
+                    end
+                    
+                    P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,...
+                        find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,:) = transition_probability_value * 1/4 * P_WIND;
+                    P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,...
+                        find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,:) = transition_probability_value * 1/4 * P_WIND;
                 else 
                     P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0),...
-                        find(stateSpace(:,1) == m-1 & stateSpace(:,2) == n & stateSpace(:,3) == 0),l) = 0;
+                        find(stateSpace(:,1) == m-1 & stateSpace(:,2) == n & stateSpace(:,3) == 0),:) = 0;
                     P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,...
-                        find(stateSpace(:,1) == m-1 & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,l) = 0;
+                        find(stateSpace(:,1) == m-1 & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,:) = 0;
                 end
                 
                 if neighbour_type(2) == 1 %south
                     P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0),...
-                        find(stateSpace(:,1) == m+1 & stateSpace(:,2) == n & stateSpace(:,3) == 0),l) = transition_probability_value;
+                        find(stateSpace(:,1) == m+1 & stateSpace(:,2) == n & stateSpace(:,3) == 0),:) = transition_probability_value * (1 - P_WIND);
                     P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,...
-                        find(stateSpace(:,1) == m+1 & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,l) = transition_probability_value;
+                        find(stateSpace(:,1) == m+1 & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,:) = transition_probability_value * (1 - P_WIND);
+                    
+                    %transition probabilities taking into account the wind
+                    if m+2 < size(map,1)
+                    P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0),...
+                        find(stateSpace(:,1) == m+2 & stateSpace(:,2) == n & stateSpace(:,3) == 0),:) = transition_probability_value * 1/4 * P_WIND;
+                    P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,...
+                        find(stateSpace(:,1) == m+2 & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,:) = transition_probability_value * 1/4 * P_WIND;
+                    end
+                    
+                    if n-1 > 0 
+                        P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,...
+                        find(stateSpace(:,1) == m+1 & stateSpace(:,2) == n-1 & stateSpace(:,3) == 0) + 1,:) = transition_probability_value * 1/4 * P_WIND;
+                        P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,...
+                        find(stateSpace(:,1) == m+1 & stateSpace(:,2) == n-1 & stateSpace(:,3) == 0) + 1,:) = transition_probability_value * 1/4 * P_WIND;
+                    end
+                    
+                    if n+1 < size(map,2)
+                        P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0),...
+                        find(stateSpace(:,1) == m+1 & stateSpace(:,2) == n+1 & stateSpace(:,3) == 0),:) = transition_probability_value * 1/4 * P_WIND;
+                        P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,...
+                        find(stateSpace(:,1) == m+1 & stateSpace(:,2) == n+1 & stateSpace(:,3) == 0) + 1,:) = transition_probability_value * 1/4 * P_WIND;
+                    end
+                    
+                    P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,...
+                        find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,:) = transition_probability_value * 1/4 * P_WIND;
+                    P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,...
+                        find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,:) = transition_probability_value * 1/4 * P_WIND;
                 else 
                     P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0),...
-                        find(stateSpace(:,1) == m+1 & stateSpace(:,2) == n & stateSpace(:,3) == 0),l) = 0;
+                        find(stateSpace(:,1) == m+1 & stateSpace(:,2) == n & stateSpace(:,3) == 0),:) = 0;
                     P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,...
-                        find(stateSpace(:,1) == m+1 & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,l) = 0;
+                        find(stateSpace(:,1) == m+1 & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,:) = 0;
                 end
                 
                 if neighbour_type(3) == 1 %est
                     P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0),...
-                        find(stateSpace(:,1) == m & stateSpace(:,2) == n+1 & stateSpace(:,3) == 0),l) = transition_probability_value;
+                        find(stateSpace(:,1) == m & stateSpace(:,2) == n+1 & stateSpace(:,3) == 0),:) = transition_probability_value * (1 - P_WIND);
                     P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,...
-                        find(stateSpace(:,1) == m & stateSpace(:,2) == n+1 & stateSpace(:,3) == 0) + 1,l) = transition_probability_value;
+                        find(stateSpace(:,1) == m & stateSpace(:,2) == n+1 & stateSpace(:,3) == 0) + 1,:) = transition_probability_value * (1 - P_WIND);
+                    
+                    %transition probabilities taking into account the wind
+                    if m-1 > 0 
+                    P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0),...
+                        find(stateSpace(:,1) == m-1 & stateSpace(:,2) == n-1 & stateSpace(:,3) == 0),:) = transition_probability_value * 1/4 * P_WIND;
+                    P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,...
+                        find(stateSpace(:,1) == m-1 & stateSpace(:,2) == n-1 & stateSpace(:,3) == 0) + 1,:) = transition_probability_value * 1/4 * P_WIND;
+                    end
+                    
+                    if m+1 < size(map,1) 
+                        P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,...
+                        find(stateSpace(:,1) == m+1 & stateSpace(:,2) == n-1 & stateSpace(:,3) == 0) + 1,:) = transition_probability_value * 1/4 * P_WIND;
+                        P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,...
+                        find(stateSpace(:,1) == m+1 & stateSpace(:,2) == n-1 & stateSpace(:,3) == 0) + 1,:) = transition_probability_value * 1/4 * P_WIND;
+                    end
+                    
+                    if n+2 > 0 
+                        P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0),...
+                        find(stateSpace(:,1) == m & stateSpace(:,2) == n+2 & stateSpace(:,3) == 0),:) = transition_probability_value * 1/4 * P_WIND;
+                        P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,...
+                        find(stateSpace(:,1) == m & stateSpace(:,2) == n+2 & stateSpace(:,3) == 0) + 1,:) = transition_probability_value * 1/4 * P_WIND;
+                    end
+                    
+                    P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,...
+                        find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,:) = transition_probability_value * 1/4 * P_WIND;
+                    P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,...
+                        find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,:) = transition_probability_value * 1/4 * P_WIND;
                 else 
                     P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0),...
-                        find(stateSpace(:,1) == m & stateSpace(:,2) == n+1 & stateSpace(:,3) == 0),l) = 0;
+                        find(stateSpace(:,1) == m & stateSpace(:,2) == n+1 & stateSpace(:,3) == 0),:) = 0;
                     P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,...
-                        find(stateSpace(:,1) == m & stateSpace(:,2) == n+1 & stateSpace(:,3) == 0) + 1,l) = 0;
+                        find(stateSpace(:,1) == m & stateSpace(:,2) == n+1 & stateSpace(:,3) == 0) + 1,:) = 0;
                 end
 
                 if neighbour_type(4) == 1 %west
                     P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0),...
-                        find(stateSpace(:,1) == m & stateSpace(:,2) == n-1 & stateSpace(:,3) == 0),l) = transition_probability_value;
+                        find(stateSpace(:,1) == m & stateSpace(:,2) == n-1 & stateSpace(:,3) == 0),:) = transition_probability_value * (1 - P_WIND);
                     P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,...
-                        find(stateSpace(:,1) == m & stateSpace(:,2) == n-1 & stateSpace(:,3) == 0) + 1,l) = transition_probability_value;
+                        find(stateSpace(:,1) == m & stateSpace(:,2) == n-1 & stateSpace(:,3) == 0) + 1,:) = transition_probability_value * (1 - P_WIND);
+                    
+                    %transition probabilities taking into account the wind
+                    if m-1 > 0 
+                    P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0),...
+                        find(stateSpace(:,1) == m-1 & stateSpace(:,2) == n-1 & stateSpace(:,3) == 0),:) = transition_probability_value * 1/4 * P_WIND;
+                    P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,...
+                        find(stateSpace(:,1) == m-1 & stateSpace(:,2) == n-1 & stateSpace(:,3) == 0) + 1,:) = transition_probability_value * 1/4 * P_WIND;
+                    end
+                    
+                    if m+1 < size(map,1) 
+                        P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,...
+                        find(stateSpace(:,1) == m+1 & stateSpace(:,2) == n-1 & stateSpace(:,3) == 0) + 1,:) = transition_probability_value * 1/4 * P_WIND;
+                        P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,...
+                        find(stateSpace(:,1) == m+1 & stateSpace(:,2) == n-1 & stateSpace(:,3) == 0) + 1,:) = transition_probability_value * 1/4 * P_WIND;
+                    end
+                    
+                    if n-2 > 0 
+                        P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0),...
+                        find(stateSpace(:,1) == m & stateSpace(:,2) == n-2 & stateSpace(:,3) == 0),:) = transition_probability_value * 1/4 * P_WIND;
+                        P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,...
+                        find(stateSpace(:,1) == m & stateSpace(:,2) == n-2 & stateSpace(:,3) == 0) + 1,:) = transition_probability_value * 1/4 * P_WIND;
+                    end
+                    
+                    P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,...
+                        find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,:) = transition_probability_value * 1/4 * P_WIND;
+                    P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,...
+                        find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,:) = transition_probability_value * 1/4 * P_WIND;
                 else 
                     P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0),...
-                        find(stateSpace(:,1) == m & stateSpace(:,2) == n-1 & stateSpace(:,3) == 0),l) = 0;
+                        find(stateSpace(:,1) == m & stateSpace(:,2) == n-1 & stateSpace(:,3) == 0),:) = 0;
                     P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,...
-                        find(stateSpace(:,1) == m & stateSpace(:,2) == n-1 & stateSpace(:,3) == 0) + 1,l) = 0;
+                        find(stateSpace(:,1) == m & stateSpace(:,2) == n-1 & stateSpace(:,3) == 0) + 1,:) = 0;
                 end
                 
-            end
-                 
-        end
+                %hover
+                    P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0),...
+                        find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0),5) = transition_probability_value * (1 - P_WIND);
+                    P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,...
+                        find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,5) = transition_probability_value * (1 - P_WIND);
+                    
+                    %transition probabilities taking into account the wind
+                    if m-1 > 0 
+                    P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0),...
+                        find(stateSpace(:,1) == m-1 & stateSpace(:,2) == n & stateSpace(:,3) == 0),5) = transition_probability_value * 1/4 * P_WIND;
+                    P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,...
+                        find(stateSpace(:,1) == m-1 & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,5) = transition_probability_value * 1/4 * P_WIND;
+                    end
+                    
+                    if n-1 > 0 
+                        P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,...
+                        find(stateSpace(:,1) == m & stateSpace(:,2) == n-1 & stateSpace(:,3) == 0) + 1,5) = transition_probability_value * 1/4 * P_WIND;
+                        P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,...
+                        find(stateSpace(:,1) == m & stateSpace(:,2) == n-1 & stateSpace(:,3) == 0) + 1,5) = transition_probability_value * 1/4 * P_WIND;
+                    end
+                    
+                    if n+1 < size(map,2)
+                        P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0),...
+                        find(stateSpace(:,1) == m & stateSpace(:,2) == n+1 & stateSpace(:,3) == 0),5) = transition_probability_value * 1/4 * P_WIND;
+                        P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,...
+                        find(stateSpace(:,1) == m & stateSpace(:,2) == n+1 & stateSpace(:,3) == 0) + 1,5) = transition_probability_value * 1/4 * P_WIND;
+                    end
+                    
+                    if m+1 < size(map,2)
+                    P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,...
+                        find(stateSpace(:,1) == m+1 & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,5) = transition_probability_value * 1/4 * P_WIND;
+                    P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,...
+                        find(stateSpace(:,1) == m+1 & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,5) = transition_probability_value * 1/4 * P_WIND;
+                    end
+            
+
+        end 
     end
 end
-
 end
