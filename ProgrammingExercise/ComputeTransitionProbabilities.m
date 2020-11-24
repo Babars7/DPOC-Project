@@ -28,14 +28,16 @@ global FREE TREE SHOOTER PICK_UP DROP_OFF BASE
 global NORTH SOUTH EAST WEST HOVER
 global K TERMINAL_STATE_INDEX
 
-%Initializing the transition probability matrix
+%Initializing the transition probability matrix. The probability of being
+%safe after a move
 P = zeros(size(map,1)*size(map,2),size(map,1)*size(map,2),5);
 
 %Create shooter matrix
 [row_shooter, col_shooter] = find(map(:,:) == SHOOTER);
 shooter = [row_shooter'; col_shooter'];
 
-
+%Create shooted matrix: probability of being shot down in a cell
+shooted = zeros(size(map,1), size(map,2));
 
 for m = 1 : size(map, 1)
     for n = 1 : size(map, 2)
@@ -253,7 +255,16 @@ for m = 1 : size(map, 1)
                         find(stateSpace(:,1) == m+1 & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,5) = transition_probability_value * 1/4 * P_WIND;
                     end
             
-
+            for shooter_id = 1:sum(map(:) == SHOOTER)
+                distance = abs(sum(shooter(:,shooter_id) - [m,n]));
+                if distance < R
+                    P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,...
+                        find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,:) = P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,...
+                        find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,:) * (1 - GAMMA/(distance + 1)); %probability of being safe after a move
+                    shooted(m,n) = shooted + GAMMA/(distance + 1); %probability to be shot down by an angry residents
+                end
+            end
+            
         end 
     end
 end
