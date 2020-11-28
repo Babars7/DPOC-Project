@@ -1,4 +1,4 @@
-function P = ComputeTransitionProbabilities(stateSpace, map)
+function [P, shooted] = ComputeTransitionProbabilities(stateSpace, map)
 %COMPUTETRANSITIONPROBABILITIES Compute transition probabilities.
 % 	Compute the transition probabilities between all states in the state
 %   space for all control inputs.
@@ -30,14 +30,14 @@ global K TERMINAL_STATE_INDEX
 
 %Initializing the transition probability matrix. The probability of being
 %safe after a move
-P = zeros(size(map,1)*size(map,2),size(map,1)*size(map,2),5);
+P = zeros(K,K,5);
 
 %Create shooter matrix
 [row_shooter, col_shooter] = find(map(:,:) == SHOOTER);
 shooter = [row_shooter'; col_shooter'];
 
 %Create shooted matrix: probability of being shot down in a cell
-shooted = zeros(size(map,1), size(map,2));
+shooted = ones(size(map,1), size(map,2), sum(map(:) == SHOOTER));
 
 for m = 1 : size(map, 1)
     for n = 1 : size(map, 2)
@@ -255,15 +255,28 @@ for m = 1 : size(map, 1)
                         find(stateSpace(:,1) == m+1 & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,5) = transition_probability_value * 1/4 * P_WIND;
                     end
             
-            for shooter_id = 1:sum(map(:) == SHOOTER)
-                distance = abs(sum(shooter(:,shooter_id) - [m,n]));
-                if distance < R
-                    P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,...
-                        find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,:) = P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,...
-                        find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,:) * (1 - GAMMA/(distance + 1)); %probability of being safe after a move
-                    shooted(m,n) = shooted + GAMMA/(distance + 1); %probability to be shot down by an angry residents
+            for shooter_id = 1:sum(map(:) == SHOOTER) %iterate on the number of shooters
+                distance = abs(sum(shooter(:,shooter_id) - [m;n])); %compute distance between shooter and drone
+                if distance <= R %if drone is within range of the shooter
+                    shooted(m,n,shooter_id) = shooted(m,n,shooter_id) + GAMMA/(distance + 1); %probability to be shot down by an angry residents
                 end
             end
+
+            
+            shooted(m,n,1) = sum(squeeze(shooted(m,n,:))) - sum(triu(squeeze(permute(shooted(m,n,:), [2 1 3])) .* squeeze(shooted(m,n,:)))); %probabilities of the union of probabilies of being shot by each shooter in position (m,n)
+            
+            for shooter_id = 1:sum(map(:) == SHOOTER) %iterate on the number of shooters
+                distance = abs(sum(shooter(:,shooter_id) - [m,n])); %compute distance between shooter and drone
+                if distance <= R %if drone is within range of the shooter
+                    P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0),...
+                        find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0),:) = P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0),...
+                        find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) ,:) * (1 - shooted(m,n,1)); %probability of being safe after a move
+                    P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,...
+                        find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,:) = P(find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,...
+                        find(stateSpace(:,1) == m & stateSpace(:,2) == n & stateSpace(:,3) == 0) + 1,:) * (1 - shooted(m,n,1)); %probability of being safe after a move
+                end
+            end
+            
             
         end 
     end
