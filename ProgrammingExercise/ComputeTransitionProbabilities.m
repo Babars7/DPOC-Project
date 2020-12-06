@@ -64,8 +64,8 @@ for start_stag0=1:K
             P(start_stag0,start_stag0,input)=1;
         end
         
-        switch input
-            case NORTH
+        if input == NORTH
+            
                 if ( (y_stag0+1 > N) || ( map(x_stag0,y_stag0+1)==TREE ))
                     P(start_stag0, base_Ss, input) = P(start_stag0, base_Ss, input); 
                     continue
@@ -73,7 +73,7 @@ for start_stag0=1:K
                     start_stag1 = Ss_coor(x_stag0,y_stag0+1, p ,stateSpace);
                 end
                 
-            case SOUTH
+        elseif input == SOUTH
                 if ( (y_stag0-1 < 1) || ( map(x_stag0,y_stag0-1)==TREE ))
                     P(start_stag0, base_Ss, input) = P(start_stag0, base_Ss, input);  
                     continue
@@ -81,7 +81,7 @@ for start_stag0=1:K
                     start_stag1 = Ss_coor(x_stag0,y_stag0-1, p ,stateSpace);
                 end
                
-            case WEST
+        elseif input == WEST
                 if ( (x_stag0-1 < 1) || ( map(x_stag0-1,y_stag0)==TREE ))
                     P(start_stag0, base_Ss, input) = P(start_stag0, base_Ss, input); 
                     continue
@@ -90,7 +90,7 @@ for start_stag0=1:K
                 end
             
                 
-            case EAST
+        elseif input == EAST
                 if ( (x_stag0+1 > M) || ( map(x_stag0+1,y_stag0)==TREE ))
                     P(start_stag0, base_Ss, input) = P(start_stag0, base_Ss, input); 
                     continue
@@ -98,7 +98,7 @@ for start_stag0=1:K
                     start_stag1 = Ss_coor(x_stag0+1,y_stag0, p ,stateSpace);
                 end
                 
-            case HOVER
+        elseif input == HOVER
 
                 start_stag1 = start_stag0;
         end
