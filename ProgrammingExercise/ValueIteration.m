@@ -28,7 +28,49 @@ function [ J_opt, u_opt_ind ] = ValueIteration(P, G)
 %       	input for each element of the state space. Mapping of the
 %       	terminal state is arbitrary (for example: HOVER).
 global K HOVER
+global TERMINATION_STATE_INDEX
 
+L = size(P,3); %number of inputs
+err = 1e-2; %threshold for the termination state
+
+    % INITIALIZE PROBLEM
+    % Our state space is S=KxKxL,
+    
+    % Initialize costs to an arbitrary value (here 1)
+    J = ones(K, 1);
+    
+    % Initialize the optimal control policy: 1 represents Fast serve, 2
+    % represents Slow serve
+    u_opt_ind = ones(K, 1);
+    
+    % Initialize cost-to-go
+    J_opt = zeros(K, 1);
+    
+    % Iterate until cost has converged
+    iter = 0;
+    while (1)
+    %for k = 1:iter
+        
+        % Increase counter
+        iter = iter + 1
+       
+
+        for stateSpace_i = 1:K
+            if stateSpace_i == TERMINATION_STATE_INDEX
+                continue
+            else
+                [J_opt(stateSpace_i), u_opt_ind(stateSpace_i)] = min(G(stateSpace_i,:) + J'*squeeze(P(stateSpace_i,:,:)));
+            end
+        end
+        
+        if abs(J - J_opt) < err
+            J = J_opt;
+            iter
+            break;
+        else 
+            J = J_opt;
+        end
+    end
 %% Handle terminal state
 % Do yo need to do something with the teminal state before starting policy
 % iteration ?
