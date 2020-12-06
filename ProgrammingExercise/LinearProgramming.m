@@ -29,14 +29,41 @@ function [ J_opt, u_opt_ind ] = LinearProgramming(P, G)
 %       	terminal state is arbitrary (for example: HOVER).
 
 global K HOVER
-
-%% Handle terminal state
-% Do yo need to do something with the teminal state before starting policy
-% iteration ?
+global NORTH SOUTH EAST WEST HOVER
 global TERMINAL_STATE_INDEX
-% IMPORTANT: You can use the global variable TERMINAL_STATE_INDEX computed
-% in the ComputeTerminalStateIndex.m file (see main.m)
 
+INPUTS = [NORTH, SOUTH, EAST, WEST, HOVER]; 
+
+%We will solve the Linear Programming Theorem: minimize f'*x, subject to a constraint M*x
+%<= h. Let's compute M and h.
+h = []; 
+M = [];
+
+for l = 1:length(INPUTS)
+    h = [h; G(:,l)];
+end
+
+h(h==Inf) = 1e10;
+
+for l = 1:length(INPUTS) 
+    M = [M; eye(K) - P(:,:,l)];
+end
+
+f = -1 * ones(480,1);
+
+%delete the terminal state index to avoid getting an unbounded problem
+f(TERMINAL_STATE_INDEX) = [];
+M(:,TERMINAL_STATE_INDEX) =[];
+
+[J_opt,~,~,~,lambda] = linprog(f,M,h);
+u_opt_ind = mod(find(lambda.ineqlin ~= 0),5);
+u_opt_ind(find(u_opt_ind == 0)) = 5;
+
+%replace the terminal state index in u_opt_ind and set it to HOVER
+u_opt_ind = [u_opt_ind(1:TERMINAL_STATE_INDEX-1); HOVER; u_opt_ind(TERMINAL_STATE_INDEX:end)];
+
+%replace the terminal state index in J_opt and set it it to 0
+J_opt = [J_opt(1:TERMINAL_STATE_INDEX-1); 0; J_opt(TERMINAL_STATE_INDEX:end)];
 
 end
 

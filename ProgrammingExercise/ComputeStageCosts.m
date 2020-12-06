@@ -29,7 +29,7 @@ function G = ComputeStageCosts(stateSpace, map)
     global K
     global TERMINAL_STATE_INDEX
     
-    P = ComputeTransitionProbabilities_2(stateSpace, map);
+    P = ComputeTransitionProbabilities(stateSpace, map);
     G = zeros(K,5);
     INPUTS = [NORTH, SOUTH, EAST, WEST, HOVER]; 
     
@@ -46,43 +46,38 @@ function G = ComputeStageCosts(stateSpace, map)
     
     %taking care of cases where arrival j is a tree or outside the map. inf represents an impossible input
         for l = 1:length(INPUTS)
-            switch l
-                case NORTH
+                if l == NORTH
                     if (n_i + 1 > size(map,2) || map(m_i, n_i + 1) == TREE)
                         G(stateSpace_i,l) = inf;
                         continue
                     end
-                case SOUTH
+                elseif l == SOUTH
                     if (n_i - 1 < 1 || map(m_i, n_i - 1) == TREE)
                         G(stateSpace_i,l) = inf;
                         continue
                     end
-                case EAST
+                elseif l == EAST
                     if (m_i + 1 > size(map,1) || map(m_i + 1, n_i) == TREE)
                         G(stateSpace_i,l) = inf;
                         continue
                     end
-                case WEST
+                elseif l == WEST
                     if (m_i - 1 < 1 || map(m_i - 1, n_i) == TREE)
                         G(stateSpace_i,l) = inf;
                         continue
                     end   
-            end
-        end
+                end 
     
-        for l = 1:length(INPUTS)
                 for stateSpace_j = 1:K
 
                     if stateSpace_j == BASE
-                        G(stateSpace_i,l) = G(stateSpace_i,l) + Nc * P(stateSpace_i,stateSpace_j,l)*G(;
+                        G(stateSpace_i,l) = G(stateSpace_i,l) + Nc * P(stateSpace_i,stateSpace_j,l);
                     else
                         G(stateSpace_i,l) = G(stateSpace_i,l) + P(stateSpace_i,stateSpace_j,l);
                     end
 
                 end
         end
-    
-
     end
 
 

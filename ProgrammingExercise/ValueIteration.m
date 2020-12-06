@@ -28,10 +28,10 @@ function [ J_opt, u_opt_ind ] = ValueIteration(P, G)
 %       	input for each element of the state space. Mapping of the
 %       	terminal state is arbitrary (for example: HOVER).
 global K HOVER
-global TERMINATION_STATE_INDEX
+global TERMINAL_STATE_INDEX
 
 L = size(P,3); %number of inputs
-err = 1e-2; %threshold for the termination state
+err = 1e-3; %threshold for the termination state
 
     % INITIALIZE PROBLEM
     % Our state space is S=KxKxL,
@@ -42,12 +42,16 @@ err = 1e-2; %threshold for the termination state
     % Initialize the optimal control policy: 1 represents Fast serve, 2
     % represents Slow serve
     u_opt_ind = ones(K, 1);
+    u_opt_ind(TERMINAL_STATE_INDEX) = HOVER;
     
     % Initialize cost-to-go
     J_opt = zeros(K, 1);
+    J_opt(TERMINAL_STATE_INDEX) = 0;
     
     % Iterate until cost has converged
     iter = 0;
+    iter_max = 1e5;
+    
     while (1)
     %for k = 1:iter
         
@@ -56,27 +60,22 @@ err = 1e-2; %threshold for the termination state
        
 
         for stateSpace_i = 1:K
-            if stateSpace_i == TERMINATION_STATE_INDEX
+            if stateSpace_i == TERMINAL_STATE_INDEX
                 continue
             else
                 [J_opt(stateSpace_i), u_opt_ind(stateSpace_i)] = min(G(stateSpace_i,:) + J'*squeeze(P(stateSpace_i,:,:)));
             end
         end
         
-        if abs(J - J_opt) < err
+        if (iter == iter_max)
+            break;
+        elseif (abs(J - J_opt) < err)
             J = J_opt;
-            iter
             break;
         else 
             J = J_opt;
         end
+        
     end
-%% Handle terminal state
-% Do yo need to do something with the teminal state before starting policy
-% iteration ?
-global TERMINAL_STATE_INDEX
-% IMPORTANT: You can use the global variable TERMINAL_STATE_INDEX computed
-% in the ComputeTerminalStateIndex.m file (see main.m)
-
 
 end
