@@ -49,7 +49,7 @@ for l = 1:length(INPUTS)
     M = [M; eye(K) - P(:,:,l)];
 end
 
-f = -1 * ones(480,1);
+f = -1 * ones(K,1);
 
 %delete the terminal state index to avoid getting an unbounded problem
 f(TERMINAL_STATE_INDEX) = [];
@@ -66,4 +66,3 @@ u_opt_ind = [u_opt_ind(1:TERMINAL_STATE_INDEX-1); HOVER; u_opt_ind(TERMINAL_STAT
 J_opt = [J_opt(1:TERMINAL_STATE_INDEX-1); 0; J_opt(TERMINAL_STATE_INDEX:end)];
 
 end
-
