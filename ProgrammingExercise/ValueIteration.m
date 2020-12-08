@@ -56,7 +56,7 @@ err = 1e-3; %threshold for the termination state
     %for k = 1:iter
         
         % Increase counter
-        iter = iter + 1
+        iter = iter + 1;
        
 
         for stateSpace_i = 1:K

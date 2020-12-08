@@ -86,11 +86,11 @@ global K
 K=size(stateSpace,1);
 
 %% Set the following to true as you progress with the files
-transitionProbabilitiesImplemented = false;
-stageCostsImplemented = false;
-valueIterationImplemented = false; 
-policyIterationImplemented = false;
-linearProgrammingImplemented = false;
+transitionProbabilitiesImplemented = true;
+stageCostsImplemented = true;
+valueIterationImplemented = true; 
+policyIterationImplemented = true;
+linearProgrammingImplemented = true;
 
 %% Compute the terminal state index
 global TERMINAL_STATE_INDEX
