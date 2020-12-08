@@ -29,10 +29,6 @@ global NORTH SOUTH EAST WEST HOVER
 global K TERMINAL_STATE_INDEX
 
 
-%% A CHECKER
-%-l'orientation de NORTH;SOUTH .....
-
-
 %% Initialization
 
 
@@ -51,114 +47,114 @@ pickup_Ss = Ss_coor(row_pickup, col_pickup ,0 ,stateSpace);
    
 
 %% Stage 1: Input + Out of bound and Tree feasebility check
-for start_stag0=1:K
+for start0=1:K
     for input=1:5
-        if start_stag0 == TERMINAL_STATE_INDEX
-            P(start_stag0,start_stag0,input)=1;
+        if start0 == TERMINAL_STATE_INDEX
+            P(start0,start0,input)=1;
         end
         
         for wind_d=1:5
         
-        x_stag0 = stateSpace(start_stag0, 1);
-        y_stag0 = stateSpace(start_stag0, 2);
-        p = stateSpace(start_stag0, 3);
+        x_stag0 = stateSpace(start0, 1);
+        y_stag0 = stateSpace(start0, 2);
+        p = stateSpace(start0, 3);
         
 
         
         if input == NORTH
             
                 if ( (y_stag0+1 > N) || ( map(x_stag0,y_stag0+1)==TREE ))
-                    P(start_stag0, base_Ss, input) = P(start_stag0, base_Ss, input); 
+                    P(start0, base_Ss, input) = P(start0, base_Ss, input); 
                     continue
                 else
-                    start_stag1 = Ss_coor(x_stag0,y_stag0+1, p ,stateSpace);
+                    start1 = Ss_coor(x_stag0,y_stag0+1, p ,stateSpace);
                 end
                 
         elseif input == SOUTH
                 if ( (y_stag0-1 < 1) || ( map(x_stag0,y_stag0-1)==TREE ))
-                    P(start_stag0, base_Ss, input) = P(start_stag0, base_Ss, input);  
+                    P(start0, base_Ss, input) = P(start0, base_Ss, input);  
                     continue
                 else
-                    start_stag1 = Ss_coor(x_stag0,y_stag0-1, p ,stateSpace);
+                    start1 = Ss_coor(x_stag0,y_stag0-1, p ,stateSpace);
                 end
                
         elseif input == WEST
                 if ( (x_stag0-1 < 1) || ( map(x_stag0-1,y_stag0)==TREE ))
-                    P(start_stag0, base_Ss, input) = P(start_stag0, base_Ss, input); 
+                    P(start0, base_Ss, input) = P(start0, base_Ss, input); 
                     continue
                 else
-                    start_stag1 = Ss_coor(x_stag0-1,y_stag0, p ,stateSpace);
+                    start1 = Ss_coor(x_stag0-1,y_stag0, p ,stateSpace);
                 end
             
                 
         elseif input == EAST
                 if ( (x_stag0+1 > M) || ( map(x_stag0+1,y_stag0)==TREE ))
-                    P(start_stag0, base_Ss, input) = P(start_stag0, base_Ss, input); 
+                    P(start0, base_Ss, input) = P(start0, base_Ss, input); 
                     continue
                 else
-                    start_stag1 = Ss_coor(x_stag0+1,y_stag0, p ,stateSpace);
+                    start1 = Ss_coor(x_stag0+1,y_stag0, p ,stateSpace);
                 end
                 
         elseif input == HOVER
 
-                start_stag1 = start_stag0;
+                start1 = start0;
         end
 
 %% Stage 2: Wind mooved
-        x_stag1 = stateSpace(start_stag1, 1);
-        y_stag1 = stateSpace(start_stag1, 2);
+        x1 = stateSpace(start1, 1);
+        y1 = stateSpace(start1, 2);
     
         
             if wind_d == 1 %North
-                if (y_stag1+1>N) || (map(x_stag1,y_stag1+1)==TREE)
-                    P(start_stag0, base_Ss, input) = P(start_stag0, base_Ss, input) + P_WIND/4;
+                if (y1+1>N) || (map(x1,y1+1)==TREE)
+                    P(start0, base_Ss, input) = P(start0, base_Ss, input) + P_WIND/4;
                     continue
                 else
-                    start_stag2 =Ss_coor( x_stag1,y_stag1 + 1, p ,stateSpace);
-                    P_w(start_stag0, start_stag2, input) = P_w(start_stag0, start_stag2, input) + P_WIND/4;
+                    start2 =Ss_coor( x1,y1 + 1, p ,stateSpace);
+                    P_w(start0, start2, input) = P_w(start0, start2, input) + P_WIND/4;
                 end
                 
             elseif wind_d == 2 %South
-                if (y_stag1-1 < 1) || (map(x_stag1,y_stag1-1)==TREE)
-                    P(start_stag0, base_Ss, input) = P(start_stag0, base_Ss, input) + P_WIND/4;
+                if (y1-1 < 1) || (map(x1,y1-1)==TREE)
+                    P(start0, base_Ss, input) = P(start0, base_Ss, input) + P_WIND/4;
                     continue
                 else
-                    start_stag2 =Ss_coor( x_stag1,y_stag1 - 1, p ,stateSpace);
-                    P_w(start_stag0, start_stag2, input) = P_w(start_stag0, start_stag2, input) + P_WIND/4;
+                    start2 =Ss_coor( x1,y1 - 1, p ,stateSpace);
+                    P_w(start0, start2, input) = P_w(start0, start2, input) + P_WIND/4;
                 end
             elseif wind_d == 3 %West
-                if (x_stag1-1<1) || (map(x_stag1-1,y_stag1)==TREE)
-                    P(start_stag0, base_Ss, input) = P(start_stag0, base_Ss, input) + P_WIND/4;
+                if (x1-1<1) || (map(x1-1,y1)==TREE)
+                    P(start0, base_Ss, input) = P(start0, base_Ss, input) + P_WIND/4;
                     continue
                 else
-                    start_stag2 =Ss_coor( x_stag1-1,y_stag1, p ,stateSpace);
-                    P_w(start_stag0, start_stag2, input) = P_w(start_stag0, start_stag2, input) + P_WIND/4;
+                    start2 =Ss_coor( x1-1,y1, p ,stateSpace);
+                    P_w(start0, start2, input) = P_w(start0, start2, input) + P_WIND/4;
                 end
             elseif wind_d == 4 %East
-                if (x_stag1 + 1  > M) || (map(x_stag1+1,y_stag1)==TREE)
-                    P(start_stag0, base_Ss, input) = P(start_stag0, base_Ss, input) + P_WIND/4;
+                if (x1 + 1  > M) || (map(x1+1,y1)==TREE)
+                    P(start0, base_Ss, input) = P(start0, base_Ss, input) + P_WIND/4;
                     continue
                 else
-                    start_stag2 =Ss_coor( x_stag1+1,y_stag1, p ,stateSpace);
-                    P_w(start_stag0, start_stag2, input) = P_w(start_stag0, start_stag2, input) + P_WIND/4;
+                    start2 =Ss_coor( x1+1,y1, p ,stateSpace);
+                    P_w(start0, start2, input) = P_w(start0, start2, input) + P_WIND/4;
                 end
             elseif wind_d == 5 %Stay
-                start_stag2=start_stag1;
+                start2=start1;
                 
-                P_w(start_stag0, start_stag2, input) = P_w(start_stag0, start_stag2, input) + 1 - P_WIND;
+                P_w(start0, start2, input) = P_w(start0, start2, input) + 1 - P_WIND;
          end
 
 
 %% Stage 3: Hit by angry residents
 
-            x_stag2 = stateSpace(start_stag2, 1);
-            y_stag2 = stateSpace(start_stag2, 2);
+            x2 = stateSpace(start2, 1);
+            y2 = stateSpace(start2, 2);
             dist = zeros(1, length(row_shooter));
             P_shoot = zeros(1, length(row_shooter));
             p_safe=1;
             for k=1:length(dist)
-                dist(k) = abs(row_shooter(k) - x_stag2) + abs(col_shooter(k) - y_stag2);
-                if ((dist(k) <= R) && (dist(k) >= 0))
+                dist(k) = abs(row_shooter(k) - x2) + abs(col_shooter(k) - y2);
+                if (dist(k) <= R) && (dist(k) >= 0)
                     P_shoot(k) = GAMMA/(dist(k)+1);
                     
                 else
@@ -169,32 +165,26 @@ for start_stag0=1:K
                 
                 
             
-            P(start_stag0, base_Ss, input) = P(start_stag0, base_Ss, input) + (1-p_safe)*P_w(start_stag0, start_stag2, input);
-            P_survive_ar(start_stag0, start_stag2, input) = P_survive_ar(start_stag0, start_stag2, input) + p_safe*P_w(start_stag0, start_stag2, input);
+            P(start0, base_Ss, input) = P(start0, base_Ss, input) + (1-p_safe)*P_w(start0, start2, input);
+            P_survive_ar(start0, start2, input) = P_survive_ar(start0, start2, input) + p_safe*P_w(start0, start2, input);
             
 %% Additional constraints: Pick Up , Terminal State
 
-            if ( start_stag2 == pickup_Ss )
-                start_stag3 = Ss_coor(x_stag2,y_stag2,1,stateSpace);
-                P(start_stag0, start_stag3, input) = P(start_stag0, start_stag3, input) + P_survive_ar(start_stag0, start_stag2, input);
-            elseif ( start_stag2 == TERMINAL_STATE_INDEX )
-                start_stag3 = start_stag2 ;
-                P(start_stag0, start_stag3, input) = P(start_stag0, start_stag3, input) + P_survive_ar(start_stag0, start_stag2, input);
+            if ( start2 == pickup_Ss )
+                start3 = Ss_coor(x2,y2,1,stateSpace);
+                P(start0, start3, input) = P(start0, start3, input) + P_survive_ar(start0, start2, input);
+            elseif ( start2 == TERMINAL_STATE_INDEX )
+                start3 = start2 ;
+                P(start0, start3, input) = P(start0, start3, input) + P_survive_ar(start0, start2, input);
             else 
-                start_stag3 = start_stag2;
-                P(start_stag0, start_stag3, input) = P(start_stag0, start_stag3, input) + P_survive_ar(start_stag0, start_stag2, input);
+                start3 = start2;
+                P(start0, start3, input) = P(start0, start3, input) + P_survive_ar(start0, start2, input);
             end
         end
             
-        end
     end
 end
-
-            
-            
-            
-
-
+end
 
 
 function sS_coord=Ss_coor(s,a,pack,stateSpace)
