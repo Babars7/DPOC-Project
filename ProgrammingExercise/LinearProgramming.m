@@ -39,21 +39,25 @@ INPUTS = [NORTH, SOUTH, EAST, WEST, HOVER];
 h = []; 
 M = [];
 
-for l = 1:length(INPUTS)
-    h = [h; G(:,l)];
+for i = 1:K
+    h = [h, G(i,:)];
 end
 
 h(h==Inf) = 1e10;
 
-for l = 1:length(INPUTS) 
-    M = [M; eye(K) - P(:,:,l)];
+for i = 1:K
+    temp = zeros(5, K);
+    temp(:, i) = 1;
+    temp = temp - squeeze(P(i, :, :))';
+    M =  [M; temp];
 end
 
-f = -1 * ones(K,1);
+f = -1 * ones(1,K);
 
 %delete the terminal state index to avoid getting an unbounded problem
 f(TERMINAL_STATE_INDEX) = [];
 M(:,TERMINAL_STATE_INDEX) =[];
+
 
 [J_opt,~,~,~,lambda] = linprog(f,M,h);
 u_opt_ind = mod(find(lambda.ineqlin ~= 0),5);
@@ -66,3 +70,4 @@ u_opt_ind = [u_opt_ind(1:TERMINAL_STATE_INDEX-1); HOVER; u_opt_ind(TERMINAL_STAT
 J_opt = [J_opt(1:TERMINAL_STATE_INDEX-1); 0; J_opt(TERMINAL_STATE_INDEX:end)];
 
 end
+
