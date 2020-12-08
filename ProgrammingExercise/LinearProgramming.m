@@ -61,7 +61,7 @@ M(:,TERMINAL_STATE_INDEX) =[];
 
 [J_opt,~,~,~,lambda] = linprog(f,M,h);
 u_opt_ind = mod(find(lambda.ineqlin ~= 0),5);
-u_opt_ind(find(u_opt_ind == 0)) = 5;
+u_opt_ind(u_opt_ind == 0) = 5;
 
 %replace the terminal state index in u_opt_ind and set it to HOVER
 u_opt_ind = [u_opt_ind(1:TERMINAL_STATE_INDEX-1); HOVER; u_opt_ind(TERMINAL_STATE_INDEX:end)];
